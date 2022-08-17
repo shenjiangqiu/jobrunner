@@ -10,11 +10,12 @@ struct Cli {
     /// the scripts to be sent to the job runner
     #[clap(value_parser)]
     pub scripts: Vec<String>,
+    #[clap(value_parser, long, short)]
+    pub server_addr: Option<String>,
 }
-fn sending_jobs(jobs: &[impl AsRef<str>]) -> Result<(), eyre::Report> {
-    log::info!("connecting to server: {}", "localhost:5233");
-    let mut tcp_stream =
-        TcpStream::connect("127.0.0.1:5233").wrap_err("Failed to connect to server")?;
+fn sending_jobs(addr: &str, jobs: &[impl AsRef<str>]) -> Result<(), eyre::Report> {
+    log::info!("connecting to server: {}", addr);
+    let mut tcp_stream = TcpStream::connect(addr).wrap_err("Failed to connect to server")?;
     log::info!("connected to server");
     for i in jobs {
         let i = i.as_ref();
@@ -37,5 +38,6 @@ fn main() -> Result<(), eyre::Report> {
     if args.scripts.is_empty() {
         return Err(eyre::Error::msg("No script provided"));
     }
-    sending_jobs(&args.scripts)
+    let addr = args.server_addr.unwrap_or("localhost:5233".to_string());
+    sending_jobs(&addr, &args.scripts)
 }
