@@ -17,7 +17,7 @@ fn main() -> Result<(), eyre::Report> {
     env_logger::Builder::from_env(Env::default().default_filter_or("info")).init();
     let args = Cli::try_parse()?;
 
-    let addr = args.server_addr.unwrap_or("localhost:5233".to_string());
+    let addr = args.server_addr.unwrap_or("::1:5233".to_string());
     let mut stream = TcpStream::connect(addr).wrap_err("Failed to connect to server")?;
     // send 1 to indicate that we are querying the number of jobs
     stream

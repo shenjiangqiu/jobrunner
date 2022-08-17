@@ -42,6 +42,6 @@ fn main() -> Result<(), eyre::Report> {
     if args.scripts.is_empty() {
         return Err(eyre::Error::msg("No script provided"));
     }
-    let addr = args.server_addr.unwrap_or("localhost:5233".to_string());
+    let addr = args.server_addr.unwrap_or("::1:5233".to_string());
     sending_jobs(&addr, &args.scripts)
 }

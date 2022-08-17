@@ -4,7 +4,7 @@ edition = "2021"
 license = "MIT"
 name = "sjqjobrunner"
 repository = "https://github.com/shenjiangqiu/jobrunner"
-version = "0.2.4"
+version = "0.2.5"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
@@ -14,3 +14,6 @@ env_logger = "0.9.0"
 eyre = "0.6.8"
 log = "0.4.17"
 num_cpus = "1.13.1"
+[profile.release]
+lto = true
+opt-level = 3

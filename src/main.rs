@@ -15,7 +15,7 @@ fn main() {
     let args = Cli::parse();
     println!("{:?}", args);
     let num_cpus = args.max_cpus.unwrap_or(num_cpus::get());
-    let bind_addr = args.bind_addr.unwrap_or("0.0.0.0:5233".to_string());
+    let bind_addr = args.bind_addr.unwrap_or(":::5233".to_string());
     let listener = TcpListener::bind(bind_addr).unwrap();
     log::info!("Running with {} cpus", num_cpus);
     let (tx, rx) = crossbeam_channel::unbounded();
