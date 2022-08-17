@@ -8,10 +8,12 @@ fn main() {
     env_logger::Builder::from_env(Env::default().default_filter_or("info")).init();
     let args = Cli::parse();
     println!("{:?}", args);
+    let listener = TcpListener::bind("0.0.0.0:5233").unwrap();
     let num_cpus = args.max_cpus.unwrap_or(num_cpus::get());
     log::info!("Running with {} cpus", num_cpus);
     let (tx, rx) = crossbeam_channel::unbounded();
     let mut thread_handles = vec![];
+
     for i in 0..num_cpus {
         log::info!("building thread {i}");
         let rx = rx.clone();
@@ -25,7 +27,6 @@ fn main() {
             }
         }));
     }
-    let listener = TcpListener::bind("0.0.0.0:5233").unwrap();
     for stream in listener.incoming() {
         let mut stream = stream.unwrap();
         log::info!("New connection from {}", stream.peer_addr().unwrap());
