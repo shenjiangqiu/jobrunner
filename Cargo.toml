@@ -4,7 +4,7 @@ edition = "2021"
 license = "MIT"
 name = "sjqjobrunner"
 repository = "https://github.com/shenjiangqiu/jobrunner"
-version = "0.2.2"
+version = "0.2.3"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]

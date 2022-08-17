@@ -6,6 +6,9 @@ pub struct Cli {
     /// max number of cpus to use
     #[clap(value_parser = valid_cpu_count, short, long)]
     pub max_cpus: Option<usize>,
+    /// bind addr
+    #[clap(short, long, value_parser)]
+    pub bind_addr: Option<String>,
 }
 pub fn valid_cpu_count(input: &str) -> Result<usize, String> {
     let num = input
