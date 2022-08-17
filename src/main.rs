@@ -1,9 +1,15 @@
-use std::{io::Read, net::TcpListener, process, thread};
+use std::{
+    io::{Read, Write},
+    net::TcpListener,
+    process,
+    sync::atomic::{AtomicUsize, Ordering},
+    thread,
+};
 
 use clap::Parser;
 use env_logger::Env;
 use sjqjobrunner::cli::Cli;
-
+static RUNNINGJOBS: AtomicUsize = AtomicUsize::new(0);
 fn main() {
     env_logger::Builder::from_env(Env::default().default_filter_or("info")).init();
     let args = Cli::parse();
@@ -21,26 +27,45 @@ fn main() {
             log::info!("thread {i} starting to work");
 
             while let Ok(msg) = rx.recv() {
+                RUNNINGJOBS.fetch_add(1, Ordering::SeqCst);
                 log::info!("thread {i} Running job {}", msg);
                 let output = execute_script(msg);
                 log::info!("thread {i} Finished job with output {}", output);
+                RUNNINGJOBS.fetch_sub(1, Ordering::SeqCst);
             }
         }));
     }
     for stream in listener.incoming() {
         let mut stream = stream.unwrap();
         log::info!("New connection from {}", stream.peer_addr().unwrap());
-        let mut size: [u8; 4] = [0, 0, 0, 0];
-        while let Ok(_) = stream.read_exact(&mut size) {
-            let size = u32::from_le_bytes(size);
-            let mut data = vec![0; size as usize];
-            if let Err(_) = stream.read_exact(&mut data) {
-                log::error!("Failed to read data from stream");
-                break;
+        let mut request_type = [0; 4];
+        stream.read_exact(&mut request_type).unwrap();
+        let request_type = u32::from_le_bytes(request_type);
+        match request_type {
+            0 => {
+                let mut size: [u8; 4] = [0, 0, 0, 0];
+                while let Ok(_) = stream.read_exact(&mut size) {
+                    let size = u32::from_le_bytes(size);
+                    let mut data = vec![0; size as usize];
+                    if let Err(_) = stream.read_exact(&mut data) {
+                        log::error!("Failed to read data from stream");
+                        break;
+                    }
+                    let data = String::from_utf8(data).unwrap();
+                    println!("received data: {:?}", data);
+                    tx.send(data).unwrap();
+                }
             }
-            let data = String::from_utf8(data).unwrap();
-            println!("received data: {:?}", data);
-            tx.send(data).unwrap();
+            1 => {
+                // return current queue size
+                let size = tx.len() as u32;
+                let size: [u8; 4] = size.to_le_bytes();
+                stream.write_all(&size).unwrap();
+                let running_jobs = RUNNINGJOBS.load(Ordering::SeqCst) as u32;
+                let running_jobs: [u8; 4] = running_jobs.to_le_bytes();
+                stream.write_all(&running_jobs).unwrap();
+            }
+            _ => {}
         }
     }
     drop(tx);
