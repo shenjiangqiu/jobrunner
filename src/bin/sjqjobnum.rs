@@ -15,10 +15,11 @@ struct Cli {
 }
 fn main() -> Result<(), eyre::Report> {
     env_logger::Builder::from_env(Env::default().default_filter_or("info")).init();
-    let args = Cli::try_parse()?;
+    let args = Cli::parse();
 
     let addr = args.server_addr.unwrap_or("::1:5233".to_string());
-    let mut stream = TcpStream::connect(addr).wrap_err("Failed to connect to server")?;
+    let mut stream =
+        TcpStream::connect(&addr).wrap_err(format!("Failed to connect to server: [{addr}]"))?;
     // send 1 to indicate that we are querying the number of jobs
     stream
         .write_all(&1u32.to_le_bytes())

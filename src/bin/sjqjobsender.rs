@@ -15,8 +15,9 @@ struct Cli {
 }
 fn sending_jobs(addr: &str, jobs: &[impl AsRef<str>]) -> Result<(), eyre::Report> {
     log::info!("connecting to server: {}", addr);
-    let mut tcp_stream = TcpStream::connect(addr).wrap_err("Failed to connect to server")?;
-    log::info!("connected to server");
+    let mut tcp_stream =
+        TcpStream::connect(&addr).wrap_err(format!("Failed to connect to server: [{addr}]"))?;
+    log::info!("connected to server :[{addr}]");
     // write 0 to indicate that we are sending jobs
     tcp_stream
         .write_all(&0u32.to_le_bytes())
@@ -38,7 +39,7 @@ fn sending_jobs(addr: &str, jobs: &[impl AsRef<str>]) -> Result<(), eyre::Report
 }
 fn main() -> Result<(), eyre::Report> {
     env_logger::Builder::from_env(Env::default().default_filter_or("info")).init();
-    let args = Cli::try_parse()?;
+    let args = Cli::parse();
     if args.scripts.is_empty() {
         return Err(eyre::Error::msg("No script provided"));
     }
