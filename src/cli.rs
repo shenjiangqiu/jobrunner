@@ -9,6 +9,10 @@ pub struct Cli {
     /// bind addr
     #[clap(short, long, value_parser)]
     pub bind_addr: Option<String>,
+    // /// the file to store the log,
+    // /// if not specified, will use stdout
+    // #[clap(short, long, value_parser)]
+    // pub log_path: Option<String>,
 }
 pub fn valid_cpu_count(input: &str) -> Result<usize, String> {
     let num = input

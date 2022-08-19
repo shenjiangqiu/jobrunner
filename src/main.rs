@@ -11,9 +11,12 @@ use env_logger::Env;
 use sjqjobrunner::cli::Cli;
 static RUNNINGJOBS: AtomicUsize = AtomicUsize::new(0);
 fn main() {
-    env_logger::Builder::from_env(Env::default().default_filter_or("info")).init();
     let args = Cli::parse();
-    println!("{:?}", args);
+
+    env_logger::Builder::from_env(Env::default().default_filter_or("info"))
+        .target(env_logger::Target::Stdout)
+        .init();
+    log::info!("{:?}", args);
     let num_cpus = args.max_cpus.unwrap_or(num_cpus::get());
     let bind_addr = args.bind_addr.unwrap_or(":::5233".to_string());
     let listener = TcpListener::bind(bind_addr).unwrap();
@@ -53,7 +56,7 @@ fn main() {
                         break;
                     }
                     let data = String::from_utf8(data).unwrap();
-                    println!("received data: {:?}", data);
+                    log::info!("received data: {:?}", data);
                     tx.send(data).unwrap();
                 }
             }
@@ -76,7 +79,7 @@ fn main() {
 }
 
 pub fn execute_script(script: String) -> String {
-    println!("{}", script);
+    log::info!("{}", script);
     let ouput = process::Command::new("sh")
         .arg("-c")
         .arg(script)
